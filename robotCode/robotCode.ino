@@ -87,3 +87,10 @@ void turnLeft ()
   delay(555);
 }
 
+void turnRight ()
+{
+  MOTOR.setSpeedDir1(30, DIRF);
+  MOTOR.setSpeedDir2(30, DIRF);
+  state = 0;
+  delay(555);
+}
