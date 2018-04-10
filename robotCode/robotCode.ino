@@ -17,7 +17,7 @@
 #define STATE_TurnLeft 3
 
 //Might need digital pins.
-ChainableLED led(A0, A1, 1); //(pin, pin, number of LEDs)
+ChainableLED led(2, 3, 1); //(pin, pin, number of LEDs)
 
 //when pressed bump = 1, when release bump = 0
 int bumpButton = 11;
