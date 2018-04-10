@@ -55,8 +55,8 @@ void forward ()
   {
     led.setColorRGB( 0, 0, 255, 0); //LED to green
 
-    MOTOR.setSpeedDir1(10, DIRF);
-    MOTOR.setSpeedDir2(10, DIRR);
+    MOTOR.setSpeedDir1(20, DIRF);
+    MOTOR.setSpeedDir2(20, DIRR);
   }
   state = 1;
 }
@@ -81,9 +81,9 @@ void backUp ()
 
 void turnLeft ()
 {
-  MOTOR.setSpeedDir1(10, DIRF);
-  MOTOR.setSpeedDir2(10, DIRF);
+  MOTOR.setSpeedDir1(30, DIRF);
+  MOTOR.setSpeedDir2(30, DIRF);
   state = 0;
-  delay(DELAY);
+  delay(555);
 }
 
