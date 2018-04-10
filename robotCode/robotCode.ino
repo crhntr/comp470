@@ -18,20 +18,21 @@ int bump = 0;
 int rgbLed = 0;
 int state = 0;
 
-void setup()
+void setup ()
 {
     MOTOR.init();
     pinMode(bumpButton, INPUT);
     Serial.begin(9600);
 }
 
-void loop()
+void loop ()
 {
   //Did we bump?
   bump = digitalRead(bumpButton);
   Serial.println(bump);
 
-  switch(state){
+  switch (state)
+  {
     case 0: forward();
     case 1: stopBot();
     case 2: backUp();
@@ -39,8 +40,9 @@ void loop()
   }
 }
 
-void forward(){
-  if(bump == 0)
+void forward ()
+{
+  if (bump == 0)
   {
     led.setColorRGB( 0, 0, 255, 0); //LED to green 
 
@@ -53,7 +55,8 @@ void forward(){
   }
 }
 
-void stopBot(){
+void stopBot ()
+{
   led.setColorRGB( 0, 255, 0, 0); //LED to Red
   MOTOR.setStop1();
   MOTOR.setStop2();
@@ -61,7 +64,8 @@ void stopBot(){
   delay(1000);
 }
 
-void backUp (){
+void backUp ()
+{
   led.setColorRGB( 0, 0, 0, 255); //LED to blue
   MOTOR.setSpeedDir1(10, DIRR);
   MOTOR.setSpeedDir2(10, DIRF);
@@ -70,7 +74,8 @@ void backUp (){
 
 }
 
-void turnLeft(){
+void turnLeft ()
+{
   MOTOR.setSpeedDir1(10, DIRF);
   MOTOR.setSpeedDir2(10, DIRF);
   state = 0;
