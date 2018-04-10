@@ -14,20 +14,22 @@
 
 #define SERVO_PIN           2                     // Any pin will do
 
-//Rover State Machine
+
+                              //Rover State Machine
 #define STATE_Forward       0
 #define STATE_StopBot       1
 #define STATE_BackUp        2
 #define STATE_TurnLeft      3
 #define STATE_TurnRight     4
+#define STATE_TurnAbout     5
 
-//Servo State Machine
+
+                              //Servo State Machine
 #define SERVO_Zero          0
 #define SERVO_Ninety        1
 #define SERVO_OneEighty     2
 #define SERVO_NinetyReturn  3
 
-//Might need digital pins.
 ChainableLED led(3, 2, 5);                        //(pin, pin, number of LEDs)
 
 const int pingPin = SCL;                          //for ultra sonic sensor
@@ -81,6 +83,10 @@ void loop ()
         led.setColorRGB( 0, 255, 165, 0);         //Orange
         turnRight(); 
       break;
+    case STATE_TurnAbout:
+        led.setColorRGB(0, 247, 11, 147);         //Pink
+        turnAbout();
+      break;
   }
 }
 
@@ -101,15 +107,30 @@ void stopBot ()
 {
   MOTOR.setStop1();
   MOTOR.setStop2();
-  rover_state = STATE_BackUp;
-  delay(DELAY * 2);
+  sonicLookAbout();
+  //delay(DELAY * 2);                              //Don't think we need a delay here anymore?
 }
 
 void backUp ()
 {
   MOTOR.setSpeedDir1(10, DIRR);
   MOTOR.setSpeedDir2(10, DIRF);
-  rover_state = STATE_TurnLeft;
+  if(leftDetect < 10 && rightDetect < 10)
+  {
+    rover_state = STATE_TurnAbout;
+  }
+  else if(leftDetect < 10)                         //need to test actual distances
+  {
+    rover_state = STATE_TurnLeft;
+  }
+  else
+  {
+    rover_state = STATE_TurnRight;
+  }
+
+  leftDetect = 0;                                  //resetting values for next loop
+  rightDetect = 0;
+  
   delay(DELAY);
 }
 
@@ -127,6 +148,14 @@ void turnRight ()
   MOTOR.setSpeedDir2(30, DIRR);
   rover_state = STATE_Forward;
   delay(NINETY);
+}
+
+void turnAbout()
+{
+  MOTOR.setSpeedDir1(30, DIRF);
+  MOTOR.setSpeedDir2(30, DIRF);
+  rover_state = STATE_Forward;
+  delay(NINETY * 2);                                  //180 Degree turn
 }
 
 
@@ -150,7 +179,8 @@ void sonicLookAbout()
       delay(SERVO_DELAY);    
     case SERVO_NinetyReturn:
         turnServo(lenMicroSecondsOfPulse * 1.5);
-        servo_state = SERVO_Zero;
+        servo_state = SERVO_Zero;                     //resets for next time
+        rover_state = STATE_BackUp;                   //Exits the servo state 
       delay(SERVO_DELAY);
       break;
   }
@@ -171,7 +201,14 @@ void turnServo(double pulse)
      // send the next signal too soon or too late
      int dist_cm = Ping(pingPin);  
 
-     /////////set obsticles seen based on which state it is in////////
+     if(servo_state == SERVO_Zero)                    //might have directions swapped
+     {
+        leftDetect = dist_cm;
+     }
+     else if(servo_state == SERVO_OneEighty)
+     {
+        rightDetect = dist_cm;
+     }
      Serial.println(dist_cm);
      delayMicroseconds(lenMicroSecondsOfPeriod - pulse);
  } 
