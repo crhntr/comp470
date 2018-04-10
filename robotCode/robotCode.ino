@@ -6,31 +6,48 @@
 
 #include "motordriver_4wd.h"
 #include "seeed_pwm.h"
-
 #include <ChainableLED.h>
-#define DELAY 500
-#define DELAY 500
 
-#define STATE_Forward 0
-#define STATE_StopBot 1
-#define STATE_BackUp 2
-#define STATE_TurnLeft 3
-#define STATE_TurnRight 4
+#define DELAY               500
+#define NINETY              555                   //turns ~90 Degrees at robot speed 30, 30
+#define SERVO_DELAY         1000                  //Time between servo rotations
+
+#define SERVO_PIN           2                     // Any pin will do
+
+//Rover State Machine
+#define STATE_Forward       0
+#define STATE_StopBot       1
+#define STATE_BackUp        2
+#define STATE_TurnLeft      3
+#define STATE_TurnRight     4
+
+//Servo State Machine
+#define SERVO_Zero          0
+#define SERVO_Ninety        1
+#define SERVO_OneEighty     2
+#define SERVO_NinetyReturn  3
 
 //Might need digital pins.
-ChainableLED led(3, 2, 5); //(pin, pin, number of LEDs)
+ChainableLED led(3, 2, 5);                        //(pin, pin, number of LEDs)
 
-//when pressed bump = 1, when release bump = 0
-int bumpButton = 11;
-int bump = 0;
-int rgbLed = 0;
-int state = 0;
+const int pingPin = SCL;                          //for ultra sonic sensor
+const int bumpButton = 11;
+
+int lenMicroSecondsOfPeriod = 20 * 1000;          // 20 milliseconds (ms)
+int lenMicroSecondsOfPulse = 1.0 * 1000;          // 1.0 ms is 0 degrees
+int bump = 0;                                     //when pressed bump = 1, when release bump = 0
+int rover_state = 0;
+int servo_state = 0;
+
+int leftDetect = 0;
+int rightDetect = 0;
 
 void setup ()
 {
     led.init();
     MOTOR.init();
     pinMode(bumpButton, INPUT);
+    int dist_cm = Ping(pingPin);
     Serial.begin(9600);
 }
 
@@ -39,35 +56,52 @@ void loop ()
   //Did we bump?
   bump = digitalRead(bumpButton);
 
-  Serial.println(bump);
-  Serial.println(state);
+  //Serial.println(bump);
+  Serial.println(rover_state);
 
-  switch (state)
+  switch (rover_state)
   {
-    case STATE_Forward: led.setColorRGB( 0, 0, 255, 0); forward(); break;
-    case STATE_StopBot: led.setColorRGB( 0, 255, 0, 0); stopBot(); break;
-    case STATE_BackUp: led.setColorRGB( 0, 0, 0, 255); backUp(); break;
-    case STATE_TurnLeft: led.setColorRGB( 0, 127, 0, 127); turnLeft(); break;
-    case STATE_TurnRight: led.setColorRGB( 0, 255, 165, 0); turnRight(); break;
+    case STATE_Forward: 
+        led.setColorRGB( 0, 0, 255, 0);           //Green
+        forward(); 
+      break;
+    case STATE_StopBot: 
+        led.setColorRGB( 0, 255, 0, 0);           //Red
+        stopBot(); 
+      break;
+    case STATE_BackUp: 
+        led.setColorRGB( 0, 0, 0, 255);           //Blue
+        backUp(); 
+      break;
+    case STATE_TurnLeft: 
+        led.setColorRGB( 0, 127, 0, 127);         //Purple
+        turnLeft(); 
+      break;
+    case STATE_TurnRight: 
+        led.setColorRGB( 0, 255, 165, 0);         //Orange
+        turnRight(); 
+      break;
   }
 }
 
 void forward ()
 {
-  while (!digitalRead(bumpButton))
+  if(!bump)
   {
     MOTOR.setSpeedDir1(20, DIRF);
     MOTOR.setSpeedDir2(20, DIRR);
   }
-  state = STATE_StopBot;
+  else
+  {
+    rover_state = STATE_StopBot;
+  }
 }
 
 void stopBot ()
 {
-  //LED to Red
   MOTOR.setStop1();
   MOTOR.setStop2();
-  state = STATE_BackUp;
+  rover_state = STATE_BackUp;
   delay(DELAY * 2);
 }
 
@@ -75,7 +109,7 @@ void backUp ()
 {
   MOTOR.setSpeedDir1(10, DIRR);
   MOTOR.setSpeedDir2(10, DIRF);
-  state = STATE_TurnLeft;
+  rover_state = STATE_TurnLeft;
   delay(DELAY);
 }
 
@@ -83,14 +117,89 @@ void turnLeft ()
 {
   MOTOR.setSpeedDir1(30, DIRF);
   MOTOR.setSpeedDir2(30, DIRF);
-  state = STATE_Forward;
-  delay(555);
+  rover_state = STATE_Forward;
+  delay(NINETY);
 }
 
 void turnRight ()
 {
-  MOTOR.setSpeedDir1(30, DIRF);
-  MOTOR.setSpeedDir2(30, DIRF);
-  state = STATE_Forward;
-  delay(555);
+  MOTOR.setSpeedDir1(30, DIRR);
+  MOTOR.setSpeedDir2(30, DIRR);
+  rover_state = STATE_Forward;
+  delay(NINETY);
+}
+
+
+//This logic needs redone but is a foundation
+void sonicLookAbout()
+{
+    switch(servo_state){
+    case SERVO_Zero: //0 degrees
+        turnServo(lenMicroSecondsOfPulse);
+        servo_state = SERVO_Ninety;
+        delay(SERVO_DELAY);
+      break;
+    case SERVO_Ninety:
+        turnServo(lenMicroSecondsOfPulse * 1.5);
+        servo_state = SERVO_OneEighty;
+      delay(SERVO_DELAY);
+      break;
+    case SERVO_OneEighty:
+        turnServo(lenMicroSecondsOfPulse * 2.25);
+        servo_state = SERVO_NinetyReturn;
+      delay(SERVO_DELAY);    
+    case SERVO_NinetyReturn:
+        turnServo(lenMicroSecondsOfPulse * 1.5);
+        servo_state = SERVO_Zero;
+      delay(SERVO_DELAY);
+      break;
+  }
+}
+
+void turnServo(double pulse)
+{
+  for(int i = 0; i < 40; i++)
+   {  
+     digitalWrite(SERVO_PIN, HIGH);
+     // Delay for the length of the pulse
+     delayMicroseconds(pulse);
+    
+     // Turn the voltage low for the remainder of the pulse
+     digitalWrite(SERVO_PIN, LOW);
+    
+     // Delay this loop for the remainder of the period so we don't
+     // send the next signal too soon or too late
+     int dist_cm = Ping(pingPin);  
+
+     /////////set obsticles seen based on which state it is in////////
+     Serial.println(dist_cm);
+     delayMicroseconds(lenMicroSecondsOfPeriod - pulse);
+ } 
+}
+
+int Ping( int pingPin )
+{
+  long duration, cm; 
+
+  // The PING is triggered by a HIGH pulse of 2 or more microseconds.
+  // Give a short LOW pulse beforehand to ensure a clean HIGH pulse:
+
+  pinMode(pingPin, OUTPUT);
+  digitalWrite(pingPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(pingPin, HIGH);
+  delayMicroseconds(5);
+  digitalWrite(pingPin, LOW);
+
+  // The same pin is used to read the signal from the PING: a HIGH
+  // pulse duration of which is the time (in microseconds) from the sending
+  // of the ping to the reception of its echo off of an object.
+
+  pinMode(pingPin, INPUT);
+  duration = pulseIn(pingPin, HIGH);
+
+  // convert the time into a distance
+  cm = duration / 29 / 2; // 1cm/29us  
+
+  return cm;
 }
