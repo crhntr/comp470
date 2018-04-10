@@ -58,7 +58,7 @@ void forward ()
     MOTOR.setSpeedDir1(20, DIRF);
     MOTOR.setSpeedDir2(20, DIRR);
   }
-  state = 1;
+  state = STATE_StopBot;
 }
 
 void stopBot ()
@@ -66,7 +66,7 @@ void stopBot ()
   led.setColorRGB( 0, 255, 0, 0); //LED to Red
   MOTOR.setStop1();
   MOTOR.setStop2();
-  state = 2;
+  state = STATE_BackUp;
   delay(DELAY * 2);
 }
 
@@ -75,7 +75,7 @@ void backUp ()
   led.setColorRGB( 0, 0, 0, 255); //LED to blue
   MOTOR.setSpeedDir1(10, DIRR);
   MOTOR.setSpeedDir2(10, DIRF);
-  state = 3;
+  state = STATE_TurnLeft;
   delay(DELAY);
 }
 
@@ -83,7 +83,7 @@ void turnLeft ()
 {
   MOTOR.setSpeedDir1(30, DIRF);
   MOTOR.setSpeedDir2(30, DIRF);
-  state = 0;
+  state = STATE_Forward;
   delay(555);
 }
 
@@ -91,6 +91,6 @@ void turnRight ()
 {
   MOTOR.setSpeedDir1(30, DIRF);
   MOTOR.setSpeedDir2(30, DIRF);
-  state = 0;
+  state = STATE_Forward;
   delay(555);
 }
