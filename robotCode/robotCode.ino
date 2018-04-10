@@ -8,7 +8,7 @@
 #include "seeed_pwm.h"
 
 #include <ChainableLED.h>
-#define StandardDelay 500
+#define DELAY 500
 
 //Might need digital pins.
 ChainableLED led(A0, A1, 1); //(pin, pin, number of LEDs)
@@ -45,7 +45,7 @@ void forward ()
 {
   if (bump == 0)
   {
-    led.setColorRGB( 0, 0, 255, 0); //LED to green 
+    led.setColorRGB( 0, 0, 255, 0); //LED to green
 
     MOTOR.setSpeedDir1(10, DIRF);
     MOTOR.setSpeedDir2(10, DIRR);
@@ -62,7 +62,7 @@ void stopBot ()
   MOTOR.setStop1();
   MOTOR.setStop2();
   state = 2;
-  delay(StandardDelay * 2);
+  delay(DELAY * 2);
 }
 
 void backUp ()
@@ -71,7 +71,7 @@ void backUp ()
   MOTOR.setSpeedDir1(10, DIRR);
   MOTOR.setSpeedDir2(10, DIRF);
   state = 3;
-  delay(StandardDelay);
+  delay(DELAY);
 }
 
 void turnLeft ()
@@ -79,6 +79,5 @@ void turnLeft ()
   MOTOR.setSpeedDir1(10, DIRF);
   MOTOR.setSpeedDir2(10, DIRF);
   state = 0;
-  delay(StandardDelay);
+  delay(DELAY);
 }
-
