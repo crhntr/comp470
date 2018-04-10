@@ -9,6 +9,12 @@
 
 #include <ChainableLED.h>
 #define DELAY 500
+#define DELAY 500
+
+#define STATE_Forward 0
+#define STATE_StopBot 1
+#define STATE_BackUp 2
+#define STATE_TurnLeft 3
 
 //Might need digital pins.
 ChainableLED led(A0, A1, 1); //(pin, pin, number of LEDs)
@@ -30,30 +36,29 @@ void loop ()
 {
   //Did we bump?
   bump = digitalRead(bumpButton);
+
   Serial.println(bump);
+  Serial.println(state);
 
   switch (state)
   {
-    case 0: forward();
-    case 1: stopBot();
-    case 2: backUp();
-    case 3: turnLeft();
+    case STATE_Forward: forward();
+    case STATE_StopBot: stopBot();
+    case STATE_BackUp: backUp();
+    case STATE_TurnLeft: turnLeft();
   }
 }
 
 void forward ()
 {
-  if (bump == 0)
+  while (!digitalRead(bumpButton))
   {
     led.setColorRGB( 0, 0, 255, 0); //LED to green
 
     MOTOR.setSpeedDir1(10, DIRF);
     MOTOR.setSpeedDir2(10, DIRR);
   }
-  else
-  {
-    state = 1;
-  }
+  state = 1;
 }
 
 void stopBot ()
@@ -81,3 +86,4 @@ void turnLeft ()
   state = 0;
   delay(DELAY);
 }
+
