@@ -15,9 +15,10 @@
 #define STATE_StopBot 1
 #define STATE_BackUp 2
 #define STATE_TurnLeft 3
+#define STATE_TurnRight 4
 
 //Might need digital pins.
-ChainableLED led(2, 3, 1); //(pin, pin, number of LEDs)
+ChainableLED led(3, 2, 5); //(pin, pin, number of LEDs)
 
 //when pressed bump = 1, when release bump = 0
 int bumpButton = 11;
@@ -27,6 +28,7 @@ int state = 0;
 
 void setup ()
 {
+    led.init();
     MOTOR.init();
     pinMode(bumpButton, INPUT);
     Serial.begin(9600);
@@ -42,10 +44,11 @@ void loop ()
 
   switch (state)
   {
-    case STATE_Forward: forward();
-    case STATE_StopBot: stopBot();
-    case STATE_BackUp: backUp();
-    case STATE_TurnLeft: turnLeft();
+    case STATE_Forward: led.setColorRGB( 0, 0, 255, 0); forward(); break;
+    case STATE_StopBot: led.setColorRGB( 0, 255, 0, 0); stopBot(); break;
+    case STATE_BackUp: led.setColorRGB( 0, 0, 0, 255); backUp(); break;
+    case STATE_TurnLeft: led.setColorRGB( 0, 127, 0, 127); turnLeft(); break;
+    case STATE_TurnRight: led.setColorRGB( 0, 255, 165, 0); turnRight(); break;
   }
 }
 
@@ -53,8 +56,6 @@ void forward ()
 {
   while (!digitalRead(bumpButton))
   {
-    led.setColorRGB( 0, 0, 255, 0); //LED to green
-
     MOTOR.setSpeedDir1(20, DIRF);
     MOTOR.setSpeedDir2(20, DIRR);
   }
@@ -63,7 +64,7 @@ void forward ()
 
 void stopBot ()
 {
-  led.setColorRGB( 0, 255, 0, 0); //LED to Red
+  //LED to Red
   MOTOR.setStop1();
   MOTOR.setStop2();
   state = STATE_BackUp;
@@ -72,7 +73,6 @@ void stopBot ()
 
 void backUp ()
 {
-  led.setColorRGB( 0, 0, 0, 255); //LED to blue
   MOTOR.setSpeedDir1(10, DIRR);
   MOTOR.setSpeedDir2(10, DIRF);
   state = STATE_TurnLeft;
