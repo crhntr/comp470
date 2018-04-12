@@ -119,11 +119,11 @@ void backUp ()
 {
   MOTOR.setSpeedDir1(10, DIRR);
   MOTOR.setSpeedDir2(10, DIRF);
-  if(leftDetect < 20 && rightDetect < 20)
+  if(leftDetect < 25 && rightDetect < 25)
   {
     rover_state = STATE_TurnAbout;
   }
-  else if(leftDetect < 20)                         //need to test actual distances
+  else if(leftDetect < 25)                         //need to test actual distances
   {
     rover_state = STATE_TurnRight;
   }
@@ -170,7 +170,7 @@ void sonicLookAbout()
   Serial.println(servo_state);
     switch(servo_state){
     case SERVO_Zero:
-        turnServo(lenMicroSecondsOfPulse * 0.75);
+        turnServo(lenMicroSecondsOfPulse * 0.55);
         servo_state = SERVO_Ninety;
         delay(SERVO_DELAY);
       break;
