@@ -12,7 +12,7 @@
 #define NINETY              555                   //turns ~90 Degrees at robot speed 30, 30
 #define SERVO_DELAY         1000                  //Time between servo rotations
 
-#define SERVO_PIN           2                     // Any pin will do
+#define SERVO_PIN           12                     // Any pin will do
 
 
                               //Rover State Machine
@@ -30,7 +30,7 @@
 #define SERVO_OneEighty     2
 #define SERVO_NinetyReturn  3
 
-ChainableLED led(1, 0, 5);                        //(pin, pin, number of LEDs)
+ChainableLED led(3, 2, 5);                        //(pin, pin, number of LEDs)
 
 const int pingPin = SCL;                          //for ultra sonic sensor
 const int bumpButton = 11;
@@ -59,7 +59,8 @@ void loop ()
   bump = digitalRead(bumpButton);
 
   //Serial.println(bump);
-  Serial.println("state:" + rover_state);
+  Serial.print("state: ");
+  Serial.println(rover_state);
 
   switch (rover_state)
   {
@@ -100,6 +101,9 @@ void forward ()
   else
   {
     rover_state = STATE_StopBot;
+    MOTOR.setSpeedDir1(10, DIRR);
+    MOTOR.setSpeedDir2(10, DIRF);
+    delay(DELAY/2);
   }
 }
 
@@ -115,17 +119,17 @@ void backUp ()
 {
   MOTOR.setSpeedDir1(10, DIRR);
   MOTOR.setSpeedDir2(10, DIRF);
-  if(leftDetect < 10 && rightDetect < 10)
+  if(leftDetect < 20 && rightDetect < 20)
   {
     rover_state = STATE_TurnAbout;
   }
-  else if(leftDetect < 10)                         //need to test actual distances
+  else if(leftDetect < 20)                         //need to test actual distances
   {
-    rover_state = STATE_TurnLeft;
+    rover_state = STATE_TurnRight;
   }
   else
   {
-    rover_state = STATE_TurnRight;
+    rover_state = STATE_TurnLeft;
   }
 
   leftDetect = 0;                                  //resetting values for next loop
@@ -162,10 +166,11 @@ void turnAbout()
 //This logic needs redone but is a foundation
 void sonicLookAbout()
 {
-  Serial.println("servo state:" + servo_state);
+  Serial.print("servo state: ");
+  Serial.println(servo_state);
     switch(servo_state){
-    case SERVO_Zero: //0 degrees
-        turnServo(lenMicroSecondsOfPulse);
+    case SERVO_Zero:
+        turnServo(lenMicroSecondsOfPulse * 0.75);
         servo_state = SERVO_Ninety;
         delay(SERVO_DELAY);
       break;
@@ -175,9 +180,10 @@ void sonicLookAbout()
       delay(SERVO_DELAY);
       break;
     case SERVO_OneEighty:
-        turnServo(lenMicroSecondsOfPulse * 2.25);
+        turnServo(lenMicroSecondsOfPulse * 4.0);
         servo_state = SERVO_NinetyReturn;
-      delay(SERVO_DELAY);    
+      delay(SERVO_DELAY); 
+      break;   
     case SERVO_NinetyReturn:
         turnServo(lenMicroSecondsOfPulse * 1.5);
         servo_state = SERVO_Zero;                     //resets for next time
