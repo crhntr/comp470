@@ -30,7 +30,7 @@
 #define SERVO_OneEighty     2
 #define SERVO_NinetyReturn  3
 
-ChainableLED led(3, 2, 5);                        //(pin, pin, number of LEDs)
+ChainableLED led(1, 0, 5);                        //(pin, pin, number of LEDs)
 
 const int pingPin = SCL;                          //for ultra sonic sensor
 const int bumpButton = 11;
@@ -59,7 +59,7 @@ void loop ()
   bump = digitalRead(bumpButton);
 
   //Serial.println(bump);
-  Serial.println(rover_state);
+  Serial.println("state:" + rover_state);
 
   switch (rover_state)
   {
@@ -162,6 +162,7 @@ void turnAbout()
 //This logic needs redone but is a foundation
 void sonicLookAbout()
 {
+  Serial.println("servo state:" + servo_state);
     switch(servo_state){
     case SERVO_Zero: //0 degrees
         turnServo(lenMicroSecondsOfPulse);
