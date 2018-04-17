@@ -1,3 +1,4 @@
+<<<<<<< current
 //////////Libraries////////////////////////
 //github.com/reeedstudio/libraries/tree/master/motordriver_4wd
 //github.com/Seeed-Studio/SeeedMotorShieldV2
@@ -94,3 +95,53 @@ void turnRight ()
   state = STATE_Forward;
   delay(555);
 }
+=======
+#include "motordriver_4wd.h"
+#include "seeed_pwm.h"
+
+enum {LEFT, RIGHT} state;
+
+int highVal, lowVal;
+
+void setup() {
+  digitalWrite(A0, INPUT_PULLUP);
+  MOTOR.init();
+  MOTOR.setSpeedDir1(32, DIRF);
+  MOTOR.setSpeedDir2(16, DIRR);
+  state = RIGHT;
+  delay(100);
+
+  highVal = 0;
+  lowVal = 10000;
+
+  Serial.begin(9600);
+}
+
+
+
+void loop() {
+  int val = 1020 - analogRead(A0);
+
+//  Serial.println(lowVal);
+//  Serial.println(highVal);
+  Serial.println(val);
+
+  if (val > 219 /* ((highVal-lowVal)/2) */ ) {
+    if (state == LEFT) {
+      MOTOR.setSpeedDir1(32, DIRF);
+      MOTOR.setSpeedDir2(16, DIRR);
+      state = RIGHT;
+      delay(1000);
+    } else if (state == RIGHT) {
+      MOTOR.setSpeedDir1(16, DIRF);
+      MOTOR.setSpeedDir2(32, DIRR);
+      state = LEFT;
+      delay(1000);
+    }
+  }
+
+//  if (val < lowVal) { lowVal = val;}
+//  if (val > highVal) { highVal = val;}
+}
+
+>>>>>>> before discard
