@@ -15,6 +15,7 @@ ChainableLED leds(13, 11, NUM_LEDS);
 
 //-------- motor control
 
+#define ROTATION_TIME 555
 void TurnLeft90();
 void TurnRight90();
 void Straight( int speed, int dirn );
@@ -34,6 +35,7 @@ double theta =  PI / 2.0;
 
 // encoder variables
 volatile long left_encoder_count = 0, right_encoder_count = 0;
+long some_time = 0;
 int left_dirn = 1, right_dirn = 1;
 
 
@@ -94,7 +96,7 @@ void loop()
 
     //---- back up
     leds.setColorRGB(0, 100, 0, 0);  // red
-    Straight( 10, -1 );
+    Straight( 20, -1 );
     delay(500);
 
     //---- update state
@@ -114,7 +116,7 @@ void loop()
 
     //---- go straight
     leds.setColorRGB(0, 0, 100, 0);  // green
-    Straight( 10, 1 );
+    Straight( 20, 1 );
 
     //---- update state
     state = FWD;
@@ -129,16 +131,10 @@ void loop()
 void
 TurnLeft90()
 {
-  right_encoder_count = left_encoder_count = 0;
-
-  left_dirn = -1; right_dirn = 1;
-  MOTOR.setSpeedDir1(40, DIRR); MOTOR.setSpeedDir2(40, DIRR);
-  while (right_encoder_count < 64)
-  {
-    delayMicroseconds(1);
-  }
-
+  MOTOR.setSpeedDir1(30, DIRR); MOTOR.setSpeedDir2(30, DIRR);
+  delay(ROTATION_TIME);
   MOTOR.setSpeedDir1(0, DIRF); MOTOR.setSpeedDir2(0, DIRR);
+  left_encoder_count = right_encoder_count = 0;
 }
 
 //======================================================================================
@@ -148,16 +144,10 @@ TurnLeft90()
 void
 TurnRight90()
 {
-  right_encoder_count = left_encoder_count = 0;
-
-  left_dirn = 1; right_dirn = -1;
-  MOTOR.setSpeedDir1(40, DIRF); MOTOR.setSpeedDir2(40, DIRF);
-  while (left_encoder_count < 64)
-  {
-    delayMicroseconds(1);
-  }
-
+  MOTOR.setSpeedDir1(30, DIRF); MOTOR.setSpeedDir2(30, DIRF);
+  delay(ROTATION_TIME);
   MOTOR.setSpeedDir1(0, DIRF); MOTOR.setSpeedDir2(0, DIRR);
+  left_encoder_count = right_encoder_count = 0;
 }
 
 //======================================================================================
@@ -198,3 +188,4 @@ void RightEncoder()
 {
   right_encoder_count = right_encoder_count + right_dirn;
 }
+
