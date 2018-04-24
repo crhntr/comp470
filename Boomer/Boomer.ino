@@ -9,11 +9,13 @@ int state;
 float positionX = 0.0, positionY = 0.0;
 
 float map[][] = {
-  {0, 0, 0, 0, 0},
-  {0, 0, 0, 0, 0}
-  {0, 0, 0, 0, 0}
-  {0, 0, 0, 0, 0}
-  {0, 0, 0, 0, 0}
+  {1, 1, 1, 1, 1, 1, 1},
+  {1, 0, 0, 0, 0, 0, 1},
+  {1, 0, 0, 0, 0, 0, 1},
+  {1, 0, 0, 0, 0, 0, 1},
+  {1, 0, 0, 0, 0, 0, 1},
+  {1, 0, 0, 0, 0, 0, 1},
+  {1, 1, 1, 1, 1, 1, 1},
 }
 
 // ticks per rotation
@@ -45,8 +47,6 @@ void loop () {
     case STATE_WANDER: wanderStateMachine(); break;
     case STATE_RETURN: returnStateMachine(); break;
     case STATE_CLIMB: climbStateMachine(); break
-    case STATE_END:
-    
-    break;
+    case STATE_END: break;
   }
 }
