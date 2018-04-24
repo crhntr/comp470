@@ -36,19 +36,17 @@ void init () {
   attachInterrupt(1, rightEncoder, CHANGE);
 }
 
+void wanderStateMachine () {}
+void returnStateMachine () {}
+void climbStateMachine () {}
+
 void loop () {
   switch (state) {
-    case STATE_WANDER:
-
-    break;
-    case STATE_RETURN:
-
-    break;
-    case STATE_CLIMB:
-
-    break;
+    case STATE_WANDER: wanderStateMachine(); break;
+    case STATE_RETURN: returnStateMachine(); break;
+    case STATE_CLIMB: climbStateMachine(); break
     case STATE_END:
-
+    
     break;
   }
 }
