@@ -6,6 +6,15 @@
 #define STATE_END    3
 
 int state;
+float positionX = 0.0, positionY = 0.0;
+
+float map[][] = {
+  {0, 0, 0, 0, 0},
+  {0, 0, 0, 0, 0}
+  {0, 0, 0, 0, 0}
+  {0, 0, 0, 0, 0}
+  {0, 0, 0, 0, 0}
+}
 
 // ticks per rotation
 #define TPR 72
@@ -15,7 +24,9 @@ int state;
 volatile long left_encoder_count = 0, right_encoder_count = 0;
 int left_dirn = 1, right_dirn = 1;
 
+// leftEncoder should update positionX and positionY
 void leftEncoder () { left_encoder_count += left_dirn; }
+// rightEncoder should update positionX and positionY
 void rightEncoder () { right_encoder_count += right_dirn; }
 
 void init () {
@@ -28,16 +39,16 @@ void init () {
 void loop () {
   switch (state) {
     case STATE_WANDER:
-    
+
     break;
     case STATE_RETURN:
-    
+
     break;
     case STATE_CLIMB:
-    
+
     break;
     case STATE_END:
-    
+
     break;
   }
 }
