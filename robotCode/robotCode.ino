@@ -12,7 +12,7 @@
 #define NINETY              555                   //turns ~90 Degrees at robot speed 30, 30
 #define SERVO_DELAY         1000                  //Time between servo rotations
 
-#define SERVO_PIN           12                     // Any pin will do
+#define SERVO_PIN           13                     // Any pin will do
 
 
                               //Rover State Machine
@@ -170,7 +170,7 @@ void sonicLookAbout()
   Serial.println(servo_state);
     switch(servo_state){
     case SERVO_Zero:
-        turnServo(lenMicroSecondsOfPulse * 0.55);
+        turnServo(lenMicroSecondsOfPulse * 0.5);
         servo_state = SERVO_Ninety;
         delay(SERVO_DELAY);
       break;
@@ -180,7 +180,7 @@ void sonicLookAbout()
       delay(SERVO_DELAY);
       break;
     case SERVO_OneEighty:
-        turnServo(lenMicroSecondsOfPulse * 4.0);
+        turnServo(lenMicroSecondsOfPulse * 3);
         servo_state = SERVO_NinetyReturn;
       delay(SERVO_DELAY); 
       break;   

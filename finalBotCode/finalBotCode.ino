@@ -3,6 +3,11 @@
 #include "seeed_pwm.h"
 #include <ChainableLED.h>
 
+#define SERVO_PIN           13
+
+const int pingPin = SCL;                          //for ultra sonic sensor
+const int bumpButton = 11;
+
 //Pi Constants
 const double PIE    = 3.14159265;
 const double PIE_O2 = PIE/2.0;
@@ -47,7 +52,7 @@ double TOP = 1500.0;
 float positionX = 0.0, 
       positionY = 0.0;
 
-float map[][] = {
+float map[7][7] = {
   {1, 1, 1, 1, 1, 1, 1},
   {1, 0, 0, 0, 0, 0, 1},
   {1, 0, 0, 0, 0, 0, 1},
@@ -58,11 +63,6 @@ float map[][] = {
 }
 
 #define SERVO_DELAY         1000
-
-#define SERVO_PIN           13
-
-const int pingPin = SCL;                          //for ultra sonic sensor
-const int bumpButton = 11;
 
 ChainableLED led(3, 2, 5);                        //(pin, pin, number of LEDs)
 
@@ -92,13 +92,7 @@ void setup() {
 }
 
 void loop() {
-  dx = PIE * RW * cos(theta) * ((double)(left_encoder_count + right_encoder_count) / TPR);
-  x = x + dx;
-  
-  dy = PIE * RW * sin(theta) * ((double)(left_encoder_count + right_encoder_count) / TPR);
-  y = y + dy;
-  
-  right_encoder_count = left_encoder_count = 0;
+  UpdateLoc();
 
 }
 
@@ -161,6 +155,17 @@ void Straight( int speed, int dirn )
       MOTOR.setSpeedDir1(speed+0.25*speed, DIRR); 
       MOTOR.setSpeedDir2(speed, DIRF); 
     }
+}
+
+void UpdateLoc()
+{
+  dx = PIE * RW * cos(theta) * ((double)(left_encoder_count + right_encoder_count) / TPR);
+  x = x + dx;
+  
+  dy = PIE * RW * sin(theta) * ((double)(left_encoder_count + right_encoder_count) / TPR);
+  y = y + dy;
+  
+  right_encoder_count = left_encoder_count = 0;
 }
 
 //======================================================================================
