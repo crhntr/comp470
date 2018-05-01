@@ -19,6 +19,7 @@ const double PIE2   = PIE*2.0;
 void TurnLeft90();
 void TurnRight90();
 void Straight( int speed, int dirn );
+void UpdateLoc();
 
 //-------- dead reckoning 
 
