@@ -17,9 +17,12 @@ double theta =  PI/2.0;
 #define DIRECTION_SOUTH 2
 #define DIRECTION_WEST  3
 
+enum {LEFT, RIGHT, STRAIGHT} photo_state;
+
 const int ULTRASONIC_PIN = SCL;
 const int BUMP_PIN = 11;
 const int SERVO_PIN = 13;
+const int PHOTO_PIN = 0;
 
 int lenMicroSecondsOfPeriod = 20 * 1000; // 20 milliseconds (ms)
 int lenMicroSecondsOfPulse = 1.0 * 1000; // 1.0 ms is 0 degrees
@@ -59,6 +62,7 @@ volatile long right_encoder_count = 0;
 int ping (int pingPin);
 void turnLeft();
 void turnRight();
+void RampTime();
 
 void leftEncoder () { left_encoder_count = left_encoder_count + left_dirn; }
 void rightEncoder () { right_encoder_count = right_encoder_count + right_dirn; }
@@ -347,3 +351,38 @@ void turnRight() {
 
     stop();
 }
+<<<<<<< HEAD
+=======
+
+void RampTime()
+{
+  int val = analogRead(PHOTO_PIN);
+
+  if (val > 100)
+  {
+    if (photo_state == LEFT)
+    {
+      MOTOR.setSpeedDir1(18, DIRF);
+      MOTOR.setSpeedDir2(12, DIRR);
+      photo_state = RIGHT;
+      delay(500);
+    }
+    else
+    if (photo_state == RIGHT)
+    {
+      MOTOR.setSpeedDir1(12, DIRF);
+      MOTOR.setSpeedDir2(18, DIRR);
+      photo_state = STRAIGHT;
+      delay(500);      
+    }
+    else
+    {
+      MOTOR.setSpeedDir1(18, DIRF);
+      MOTOR.setSpeedDir2(18, DIRR);
+      photo_state = LEFT;
+      delay(500);  
+    }
+  }
+}
+
+>>>>>>> 9992796a33828b280e686a95fd497b13827405ef
