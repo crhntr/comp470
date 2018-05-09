@@ -1,4 +1,4 @@
-op#define SERVO_PIN         2  // Any pin on the Arduino or Mega will work.
+#define SERVO_PIN         2  // Any pin on the Arduino or Mega will work.
 
 int lenMicroSecondsOfPeriod = 20 * 1000; // 20 milliseconds (ms)
 int lenMicroSecondsOfPulse = 1.0 * 1000; // 1.0 ms is 0 degrees
@@ -19,10 +19,10 @@ void setup()
 void loop()
 {
 
- // Servos work by sending a 20 ms pulse.  
+ // Servos work by sending a 20 ms pulse.
  // 1.0 ms at the start of the pulse will turn the servo to the 0 degree position
- // 1.5 ms at the start of the pulse will turn the servo to the 90 degree position 
- // 2.0 ms at the start of the pulse will turn the servo to the 180 degree position 
+ // 1.5 ms at the start of the pulse will turn the servo to the 90 degree position
+ // 2.0 ms at the start of the pulse will turn the servo to the 180 degree position
  // Turn voltage high to start the period and pulse
 
   switch(state){
@@ -34,16 +34,16 @@ void loop()
     case 1:
       turn(lenMicroSecondsOfPulse * 1.5);
       state = 2;
-      delay(1000);
+      delay(2000);
       break;
     case 2:
       turn(lenMicroSecondsOfPulse * 2.25);
       state = 3;
-      delay(1000);    
+      delay(3000);
     case 3:
       turn(lenMicroSecondsOfPulse * 1.5);
       state = 0;
-      delay(1000);
+      delay(4000);
       break;
   }
 
@@ -52,26 +52,25 @@ void loop()
 void turn(double pulse)
 {
   for(int i = 0; i < 40; i++)
-   {  
+   {
      digitalWrite(SERVO_PIN, HIGH);
      // Delay for the length of the pulse
      delayMicroseconds(pulse);
-    
+
      // Turn the voltage low for the remainder of the pulse
      digitalWrite(SERVO_PIN, LOW);
-    
+
      // Delay this loop for the remainder of the period so we don't
      // send the next signal too soon or too late
-     int dist_cm = Ping(pingPin);  
+     int dist_cm = Ping(pingPin);
      Serial.println(dist_cm);
      delayMicroseconds(lenMicroSecondsOfPeriod - pulse);
- } 
+ }
 }
 
-int
-Ping( int pingPin )
+int Ping( int pingPin )
 {
-  long duration, cm; 
+  long duration, cm;
 
   // The PING is triggered by a HIGH pulse of 2 or more microseconds.
   // Give a short LOW pulse beforehand to ensure a clean HIGH pulse:
@@ -91,8 +90,7 @@ Ping( int pingPin )
   duration = pulseIn(pingPin, HIGH);
 
   // convert the time into a distance
-  cm = duration / 29 / 2; // 1cm/29us  
+  cm = duration / 29 / 2; // 1cm/29us
 
   return cm;
 }
-
