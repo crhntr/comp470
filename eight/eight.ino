@@ -165,7 +165,6 @@ void loop () {
           stop(); // ACTION <----------
         } else {
           if (bump || world[nextIndexX][nextIndexY]) {
-            bump = 0;
             world[nextIndexX][nextIndexY] = 1;
 
             stop();
@@ -296,6 +295,8 @@ int rightOf(int dir) {  return (dir + 1) % 4; }
 int leftOf(int dir)  {  return (dir + 3) % 4; }
 
 void stop () {
+  left_dirn = right_dirn = 1;
+  right_encoder_count = left_encoder_count = 0;
   MOTOR.setSpeedDir1(0, DIRR);
   MOTOR.setSpeedDir2(0, DIRR);
 }
@@ -315,6 +316,8 @@ void bck () {
 }
 
 void turnLeft() {
+    stop();
+
     directionBot = leftOf(directionBot);
     right_encoder_count = left_encoder_count = 0;
 
@@ -327,12 +330,12 @@ void turnLeft() {
       delayMicroseconds(1);
     }
 
-    right_encoder_count = left_encoder_count = 0;
-    MOTOR.setSpeedDir1(0, DIRF);
-    MOTOR.setSpeedDir2(0, DIRR);
+    stop();
 }
 
 void turnRight() {
+    stop();
+
     directionBot = rightOf(directionBot);
     right_encoder_count = left_encoder_count = 0;
 
@@ -344,8 +347,5 @@ void turnRight() {
       delayMicroseconds(1);
     }
 
-    right_encoder_count = left_encoder_count = 0;
-    MOTOR.setSpeedDir1(0, DIRF);
-    MOTOR.setSpeedDir2(0, DIRR);
+    stop();
 }
-
