@@ -20,6 +20,7 @@ double theta =  PI/2.0;
 const int ULTRASONIC_PIN = SCL;
 const int BUMP_PIN = 11;
 const int SERVO_PIN = 13;
+const int PHOTO_PIN = 0;
 
 int lenMicroSecondsOfPeriod = 20 * 1000; // 20 milliseconds (ms)
 int lenMicroSecondsOfPulse = 1.0 * 1000; // 1.0 ms is 0 degrees
@@ -69,6 +70,7 @@ volatile long right_encoder_count = 0;
 int ping (int pingPin);
 void turnLeft();
 void turnRight();
+void RampTime();
 
 void leftEncoder () { left_encoder_count = left_encoder_count + left_dirn; }
 void rightEncoder () { right_encoder_count = right_encoder_count + right_dirn; }
@@ -347,5 +349,36 @@ void turnRight() {
     right_encoder_count = left_encoder_count = 0;
     MOTOR.setSpeedDir1(0, DIRF);
     MOTOR.setSpeedDir2(0, DIRR);
+}
+
+void RampTime()
+{
+  int val = analogRead(PHOTO_PIN);
+
+  if (val > 100)
+  {
+    if (state == LEFT)
+    {
+      MOTOR.setSpeedDir1(18, DIRF);
+      MOTOR.setSpeedDir2(12, DIRR);
+      state = RIGHT;
+      delay(500);
+    }
+    else
+    if (state == RIGHT)
+    {
+      MOTOR.setSpeedDir1(12, DIRF);
+      MOTOR.setSpeedDir2(18, DIRR);
+      state = STRAIGHT;
+      delay(500);      
+    }
+    else
+    {
+      MOTOR.setSpeedDir1(18, DIRF);
+      MOTOR.setSpeedDir2(18, DIRR);
+      state = LEFT;
+      delay(500);  
+    }
+  }
 }
 
