@@ -38,16 +38,6 @@ int directionUlt;
 double positionX = BLOCK_SIZE * 1.5;
 double positionY = BLOCK_SIZE * 1.5;
 
-//double world[][7] = {
-//  {1, 1.0, 1.0, 1.0, 1.0, 1.0, 1},
-//  {1, 0.0, 0.5, 0.5, 0.5, 0.5, 1},
-//  {1, 0.5, 0.5, 0.5, 0.5, 0.5, 1},
-//  {1, 0.5, 0.5, 0.5, 0.5, 0.5, 1},
-//  {1, 0.5, 0.5, 0.5, 0.5, 0.5, 1},
-//  {1, 0.5, 0.5, 0.5, 0.5, 0.5, 1},
-//  {1, 1.0, 1.0, 1.0, 1.0, 1.0, 1}
-//};
-
 int world[][7] = {
   {1, 1, 1, 1, 1, 1, 1},
   {1, 0, 0, 0, 0, 0, 1},
@@ -135,6 +125,15 @@ void loop () {
   int lookingAtY = indexY + directionVector[directionUlt][1];
 
   if (looperCount > 10) {
+
+    Serial.print("facing: ");
+    switch (directionBot) {
+      case DIRECTION_NORTH: Serial.println("DIRECTION_NORTH"); break;
+      case DIRECTION_EAST:  Serial.println("DIRECTION_EAST"); break;
+      case DIRECTION_SOUTH: Serial.println("DIRECTION_SOUTH"); break;
+      case DIRECTION_WEST:  Serial.println("DIRECTION_WEST"); break;
+    }
+
     displayMap(indexX, indexY, nextIndexX, nextIndexY);
     Serial.print(positionX);
     Serial.print(" ");
@@ -167,16 +166,11 @@ void loop () {
           if (bump || world[nextIndexX][nextIndexY]) {
             world[nextIndexX][nextIndexY] = 1;
 
-            stop();
-
             bck();
-
             delay(500);
-            stop();
 
             turnLeft();
 
-            stop();
             delay(1000);
 
             fwd();
@@ -302,6 +296,8 @@ void stop () {
 }
 
 void fwd () {
+  stop();
+
   left_dirn = 1;
   right_dirn = 1;
   MOTOR.setSpeedDir1(10, DIRF);
@@ -309,6 +305,8 @@ void fwd () {
 }
 
 void bck () {
+  stop();
+
   left_dirn = -1;
   right_dirn = -1;
   MOTOR.setSpeedDir1(10, DIRR);
