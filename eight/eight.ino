@@ -351,8 +351,6 @@ void turnRight() {
 
     stop();
 }
-<<<<<<< HEAD
-=======
 
 void RampTime()
 {
@@ -373,16 +371,14 @@ void RampTime()
       MOTOR.setSpeedDir1(12, DIRF);
       MOTOR.setSpeedDir2(18, DIRR);
       photo_state = STRAIGHT;
-      delay(500);      
+      delay(500);
     }
     else
     {
       MOTOR.setSpeedDir1(18, DIRF);
       MOTOR.setSpeedDir2(18, DIRR);
       photo_state = LEFT;
-      delay(500);  
+      delay(500);
     }
   }
 }
-
->>>>>>> 9992796a33828b280e686a95fd497b13827405ef
