@@ -35,8 +35,8 @@ double probablyClearThreashold = 0.2;
 int directionBot;
 int directionUlt;
 
-double positionX = 300 + 150;
-double positionY = 300 + 150;
+double positionX = BLOCK_SIZE * 1.5;
+double positionY = BLOCK_SIZE * 1.5;
 
 //double world[][7] = {
 //  {1, 1.0, 1.0, 1.0, 1.0, 1.0, 1},
