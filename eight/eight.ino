@@ -4,17 +4,13 @@
 
 ChainableLED led(3, 2, 5);
 
-const double PIE    = 3.14159265;
-const double PIE_O2 = PIE/2.0;
-const double PIE2 = PIE*2.0;
-
 double theta =  PI/2.0;
 
 #define RW    42.5  // radius wheel
 #define D     158.0
 #define TPR 72
 
-#define BLOCK_SIZE 300
+#define BLOCK_SIZE 210
 
 #define DIRECTION_NORTH 0
 #define DIRECTION_EAST  1
@@ -29,12 +25,12 @@ int lenMicroSecondsOfPeriod = 20 * 1000; // 20 milliseconds (ms)
 int lenMicroSecondsOfPulse = 1.0 * 1000; // 1.0 ms is 0 degrees
 
 int directionVector[][2] = {
-  {1, 0}, {0, 1},
-  {-1, 0}, {0, -1}
+  { 0, 1}, {0,-1},
+  { 0,-1}, {1, 0}
 };
 
-double upperCert = 0.8;
-double lowerCert = 0.2;
+double probablyBlockedThreashold = 0.8;
+double probablyClearThreashold = 0.2;
 
 int directionBot;
 int directionUlt;
@@ -42,23 +38,33 @@ int directionUlt;
 double positionX = 300 + 150;
 double positionY = 300 + 150;
 
-double world[][7] = {
-  {1, 1.0, 1.0, 1.0, 1.0, 1.0, 1},
-  {1, 0.0, 0.5, 0.5, 0.5, 0.5, 1},
-  {1, 0.5, 0.5, 0.5, 0.5, 0.5, 1},
-  {1, 0.5, 0.5, 0.5, 0.5, 0.5, 1},
-  {1, 0.5, 0.5, 0.5, 0.5, 0.5, 1},
-  {1, 0.5, 0.5, 0.5, 0.5, 0.5, 1},
-  {1, 1.0, 1.0, 1.0, 1.0, 1.0, 1}
+//double world[][7] = {
+//  {1, 1.0, 1.0, 1.0, 1.0, 1.0, 1},
+//  {1, 0.0, 0.5, 0.5, 0.5, 0.5, 1},
+//  {1, 0.5, 0.5, 0.5, 0.5, 0.5, 1},
+//  {1, 0.5, 0.5, 0.5, 0.5, 0.5, 1},
+//  {1, 0.5, 0.5, 0.5, 0.5, 0.5, 1},
+//  {1, 0.5, 0.5, 0.5, 0.5, 0.5, 1},
+//  {1, 1.0, 1.0, 1.0, 1.0, 1.0, 1}
+//};
+
+int world[][7] = {
+  {1, 1, 1, 1, 1, 1, 1},
+  {1, 0, 0, 0, 0, 0, 1},
+  {1, 0, 0, 0, 0, 0, 1},
+  {1, 0, 0, 0, 0, 0, 1},
+  {1, 0, 0, 0, 0, 0, 1},
+  {1, 0, 0, 0, 0, 0, 1},
+  {1, 1, 1, 1, 1, 1, 1}
 };
 
 int wanderGoalX;
 int wanderGoalY;
 int wanderStreight;
+volatile int left_dirn = 1;
+volatile int right_dirn = 1;
 volatile long left_encoder_count = 0;
 volatile long right_encoder_count = 0;
-int left_dirn;
-int right_dirn;
 
 int ping (int pingPin);
 void turnLeft();
@@ -78,16 +84,10 @@ void setup() {
 
   led.init();
   MOTOR.init();
-  
+
   pinMode(BUMP_PIN, INPUT);
   attachInterrupt(0, leftEncoder, CHANGE);
   attachInterrupt(1, rightEncoder, CHANGE);
-
-  MOTOR.setSpeedDir1(10, DIRF);
-  MOTOR.setSpeedDir2(10, DIRR);
-
-  left_dirn = 1;
-  right_dirn = 1;
 
   Serial.begin(9600);
   looperCount = 1000;
@@ -96,17 +96,29 @@ void setup() {
 #define CHECKPOINT_INITIAL 0
 #define CHECKPOINT_STATE_WANDER 1
 #define STATE_DONE 2
-int checkpointState = CHECKPOINT_INITIAL;
+int checkpointState = CHECKPOINT_STATE_WANDER;
 
 double dx, dy;
 
 void loop () {
+  delay(50);
+
+  switch (directionBot) {
+    case DIRECTION_NORTH: theta = PI/2 ; break;
+    case DIRECTION_EAST:  theta = PI; break;
+    case DIRECTION_SOUTH: theta = PI/2+PI ; break;
+    case DIRECTION_WEST:  theta = 0 ; break;
+  }
+
   //---- update robot config (x,y,theta)
-  dx = PIE * RW * cos(theta) * ((double)(left_encoder_count + right_encoder_count) / TPR);
+  dx = PI * RW * cos(theta) * ((double)(left_encoder_count + right_encoder_count) / TPR);
   positionX += dx;
 
-  dy = PIE * RW * sin(theta) * ((double)(left_encoder_count + right_encoder_count) / TPR);
+  dy = PI * RW * sin(theta) * ((double)(left_encoder_count + right_encoder_count) / TPR);
   positionY += dy;
+
+  left_encoder_count = 0;
+  right_encoder_count = 0;
 
   // calculate x, y in map
   int indexX = (int) positionX / BLOCK_SIZE;
@@ -123,6 +135,7 @@ void loop () {
   int lookingAtY = indexY + directionVector[directionUlt][1];
 
   if (looperCount > 10) {
+    displayMap(indexX, indexY, nextIndexX, nextIndexY);
     Serial.print(positionX);
     Serial.print(" ");
     Serial.print(positionY);
@@ -131,13 +144,13 @@ void loop () {
     Serial.print(" ");
     Serial.print(indexY);
     Serial.print(" ");
-    Serial.print(lookingAtX);
+    Serial.print(nextIndexX);
     Serial.print(" ");
-    Serial.print(lookingAtY);
+    Serial.print(nextIndexY);
     Serial.print(" ");
     Serial.print(world[nextIndexY][nextIndexX]);
     Serial.print('\n');
-   
+
     looperCount = 0;
   }
 
@@ -146,39 +159,80 @@ void loop () {
 
   switch (checkpointState) {
     case CHECKPOINT_STATE_WANDER:
-
         if (indexX == wanderGoalX && indexY == wanderGoalY) {
           checkpointState = STATE_DONE;
 
           stop(); // ACTION <----------
         } else {
-          if (bump) {
+          if (bump || world[nextIndexX][nextIndexY]) {
+            bump = 0;
+            world[nextIndexX][nextIndexY] = 1;
 
-            world[nextIndexY][nextIndexX] = 1;
+            stop();
 
-            turnLeft(); // TURN LEFT ACTION <----------
+            bck();
 
-          } else if (world[nextIndexY][nextIndexX] > upperCert) { // is probably blocked
+            delay(500);
+            stop();
 
-            turnLeft(); // TURN LEFT ACTION <----------
+            turnLeft();
 
-          } else if (world[nextIndexY][nextIndexX] < lowerCert) { // is probably clear
+            stop();
+            delay(1000);
 
-//            MOTOR.setSpeedDir1(10, DIRR);
-//            MOTOR.setSpeedDir2(10, DIRF);
+            fwd();
+
+            // // see if right is better
+            // switch (selectDirection(wanderGoalX, wanderGoalY, indexX, indexY, directionBot)) {
+            //   case -1:
+            //     turnLeft();
+            //     turnLeft();
+            //   break;
+            //   case 0:
+            //     turnRight();
+            //   break;
+            //   case 1:
+            //     turnLeft();
+            //   break;
+            // }
+            //
+            // fwd();
+
+          } else if (world[nextIndexX][nextIndexY] == 0) {
+            fwd(); // ALL CLEAR CONTINUE FORWARD
+          } else {
+            world[indexY][indexX] = 0;
           }
-
-          world[indexY][indexX] = 0;
         }
         break;
     case STATE_DONE:
-      MOTOR.setSpeedDir1(0, DIRF);
-      MOTOR.setSpeedDir2(0, DIRF);
-      delayMicroseconds(10000);
+      stop();
+      delay(3000);
+      turnLeft();
+      turnLeft();
+      wanderGoalX = 1;
+      wanderGoalY = 1;
+      checkpointState = CHECKPOINT_STATE_WANDER;
     break;
   }
 }
 
+void displayMap(int posX, int posY, int lposX, int lposY) {
+  for (int i = 0; i < 7; i++) {
+    for (int j = 0; j < 7; j++) {
+      if (i == lposX && j == lposY) {
+        Serial.print('*');
+      } else if (i == posX && j == posY) {
+        Serial.print('@');
+      } else if (world[i][j]) {
+        Serial.print('#');
+      } else {
+        Serial.print(' ');
+      }
+    }
+    Serial.print('\n');
+  }
+}
 
 int ping (int pingPin) {
   long duration, cm;
@@ -218,19 +272,53 @@ void turnServo(double pulse) {
      delayMicroseconds(lenMicroSecondsOfPeriod - pulse);
    }
 }
+// selectDirection returns:
+//   -1 if bot should turn around
+//   0 if a right turn would be closer to the goal
+//   1 if a left  turn would be closer to the goal
+int selectDirection(int xgoal, int ygoal, int x, int y, int dir) {
+  int rIndx = x + directionVector[rightOf(dir)][0];
+  int rIndy = y + directionVector[rightOf(dir)][1];
+  int lIndx = x + directionVector[leftOf(dir)][0];
+  int lIndy = y + directionVector[leftOf(dir)][1];
+
+  if (!world[rIndx][rIndy] && !world[lIndx][lIndy]) { return -1; }
+
+  int rDist = ((xgoal-rIndx)*(xgoal-rIndx))+((ygoal-rIndy)*(ygoal-rIndy));
+  int lDist = ((xgoal-lIndx)*(xgoal-lIndx))+((ygoal-lIndy)*(ygoal-lIndy));
+
+  if (lDist > rDist) {
+    return 0;
+  }
+  return 1;
+}
+int rightOf(int dir) {  return (dir + 1) % 4; }
+int leftOf(int dir)  {  return (dir + 3) % 4; }
 
 void stop () {
   MOTOR.setSpeedDir1(0, DIRR);
   MOTOR.setSpeedDir2(0, DIRR);
 }
 
+void fwd () {
+  left_dirn = 1;
+  right_dirn = 1;
+  MOTOR.setSpeedDir1(10, DIRF);
+  MOTOR.setSpeedDir2(10, DIRR);
+}
+
+void bck () {
+  left_dirn = -1;
+  right_dirn = -1;
+  MOTOR.setSpeedDir1(10, DIRR);
+  MOTOR.setSpeedDir2(10, DIRF);
+}
 
 void turnLeft() {
-    directionBot = (directionBot + 3) % 4;
+    directionBot = leftOf(directionBot);
     right_encoder_count = left_encoder_count = 0;
 
-    left_dirn = -1;
-    right_dirn = 1;
+    left_dirn = -1; right_dirn = 1;
 
     MOTOR.setSpeedDir1(40, DIRR);
     MOTOR.setSpeedDir2(40, DIRR);
@@ -239,17 +327,16 @@ void turnLeft() {
       delayMicroseconds(1);
     }
 
+    right_encoder_count = left_encoder_count = 0;
     MOTOR.setSpeedDir1(0, DIRF);
     MOTOR.setSpeedDir2(0, DIRR);
 }
 
 void turnRight() {
-    directionBot = (directionBot + 1) % 4;
-
+    directionBot = rightOf(directionBot);
     right_encoder_count = left_encoder_count = 0;
 
-    left_dirn = 1;
-    right_dirn = -1;
+    left_dirn = 1; right_dirn = -1;
 
     MOTOR.setSpeedDir1(40, DIRF);
     MOTOR.setSpeedDir2(40, DIRF);
@@ -257,6 +344,7 @@ void turnRight() {
       delayMicroseconds(1);
     }
 
+    right_encoder_count = left_encoder_count = 0;
     MOTOR.setSpeedDir1(0, DIRF);
     MOTOR.setSpeedDir2(0, DIRR);
 }
