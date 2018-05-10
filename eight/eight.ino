@@ -58,6 +58,7 @@ int left_dirn = 1;
 int right_dirn = 1;
 volatile long left_encoder_count = 0;
 volatile long right_encoder_count = 0;
+int upRamp = 0;
 
 int ping (int pingPin);
 // void turnLeft();
@@ -360,24 +361,37 @@ void bck () {
 
 void RampTime()
 {
-  int val = analogRead(PHOTO_PIN);
+  int val = analogRead(A0);
 
+  Serial.println(val);
+  while(val > 900 && !upRamp)
+  {
+    val = analogRead(A0);
+    Serial.println(val);
+    if(val < 900)
+        upRamp = 1; 
+    else
+      MOTOR.setSpeedDir1(15, DIRR);
+      MOTOR.setSpeedDir2(15, DIRR);
+  
+  }
+  
   if (val > 60)
   {
-    if (photo_state == LEFT)
+    if (state == LEFT)
     {
       MOTOR.setSpeedDir1(18, DIRF);
       MOTOR.setSpeedDir2(12, DIRR);
-      photo_state = RIGHT;
+      state = RIGHT;
       delay(500);
     }
     else
-    if (photo_state == RIGHT)
+    if (state == RIGHT)
     {
       MOTOR.setSpeedDir1(12, DIRF);
       MOTOR.setSpeedDir2(18, DIRR);
-      photo_state = LEFT;
-      delay(500);
+      state = LEFT;
+      delay(500);      
     }
   }
 }
