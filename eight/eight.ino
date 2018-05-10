@@ -10,7 +10,7 @@ double theta =  PI/2.0;
 #define D     158.0
 #define TPR 72
 
-#define BLOCK_SIZE 100
+#define BLOCK_SIZE 160
 
 #define DIRECTION_NORTH 0
 #define DIRECTION_EAST  1
@@ -54,14 +54,14 @@ int world[][7] = {
 int wanderGoalX;
 int wanderGoalY;
 int wanderStreight;
-volatile int left_dirn = 1;
-volatile int right_dirn = 1;
+int left_dirn = 1;
+int right_dirn = 1;
 volatile long left_encoder_count = 0;
 volatile long right_encoder_count = 0;
 
 int ping (int pingPin);
-void turnLeft();
-void turnRight();
+// void turnLeft();
+// void turnRight();
 void RampTime();
 
 void leftEncoder () { left_encoder_count = left_encoder_count + left_dirn; }
@@ -168,7 +168,10 @@ void loop () {
           Serial.println("REACHED_GOAL");
           stop();
           delay(3000);
-          turnLeft();
+
+          MOTOR.setSpeedDir1(30, DIRR);
+          MOTOR.setSpeedDir2(30, DIRR);
+          delay(555*2);
 
           wanderGoalX = 1;
           wanderGoalY = 1;
@@ -178,35 +181,47 @@ void loop () {
         } else {
           if (bump || world[nextIndexX][nextIndexY]) {
             stop();
-            Serial.println("I HIT A THING... SORRY!");
-            world[nextIndexX][nextIndexY] = 1;
 
+            Serial.println("I HIT A THING... SORRY!");
+            delay(2000);
 
             int rIndx = indexX + directionVector[rightOf(directionBot)][0];
             int rIndy = indexY + directionVector[rightOf(directionBot)][1];
             int lIndx = indexX + directionVector[leftOf(directionBot)][0];
             int lIndy = indexY + directionVector[leftOf(directionBot)][1];
 
-            if (!world[rIndx][rIndy]) {
+            Serial.print(rIndx);
+            Serial.print(" ");
+            Serial.print(rIndy);
+            Serial.print(" ");
+            Serial.print(lIndx);
+            Serial.print(" ");
+            Serial.print(lIndy);
+            Serial.println();
+
+            if (world[rIndx][rIndy]) {
               Serial.println("1");
-              turnRight();
-            } else if (!world[lIndx][lIndy]) {
+              MOTOR.setSpeedDir1(30, DIRF);
+              MOTOR.setSpeedDir2(30, DIRF);
+              right_encoder_count = left_encoder_count = 0;
+              delay(555);
+            } else if (world[lIndx][lIndy]) {
               Serial.println("11");
-              turnLeft();
+              MOTOR.setSpeedDir1(30, DIRR);
+              MOTOR.setSpeedDir2(30, DIRR);
+              right_encoder_count = left_encoder_count = 0;
+              delay(555);
             } else {
               Serial.println("111");
-              turnRight();
-              turnRight();
+              MOTOR.setSpeedDir1(30, DIRF);
+              MOTOR.setSpeedDir2(30, DIRF);
+              right_encoder_count = left_encoder_count = 0;
+              delay(555*2);
             }
-
-            fwd();
-
-          } else if (world[nextIndexX][nextIndexY] == 0) {
-            Serial.println("1234124612");
-            fwd(); // ALL CLEAR CONTINUE FORWARD
-          } else {
-            world[indexY][indexX] = 0;
+            world[nextIndexX][nextIndexY] = 1;
           }
+          MOTOR.setSpeedDir1(10, DIRF);
+          MOTOR.setSpeedDir2(10, DIRR);
         }
         break;
   }
@@ -291,8 +306,6 @@ int rightOf(int dir) {  return (dir + 1) % 4; }
 int leftOf(int dir)  {  return (dir + 3) % 4; }
 
 void stop () {
-  left_dirn = right_dirn = 1;
-  right_encoder_count = left_encoder_count = 0;
   Serial.println("DON'T STOP BELIEVING");
   MOTOR.setStop1();
   MOTOR.setStop2();
@@ -314,36 +327,36 @@ void bck () {
   MOTOR.setSpeedDir2(10, DIRF);
 }
 
-void turnLeft() {
-
-    directionBot = leftOf(directionBot);
-    right_encoder_count = left_encoder_count = 0;
-
-    left_dirn = -1; right_dirn = 1;
-
-    MOTOR.setSpeedDir1(40, DIRR);
-    MOTOR.setSpeedDir2(40, DIRR);
-
-    while (right_encoder_count < 64 || right_encoder_count > 64) {
-      delayMicroseconds(1);
-    }
-
-}
-
-void turnRight() {
-
-    directionBot = rightOf(directionBot);
-    right_encoder_count = left_encoder_count = 0;
-
-    left_dirn = 1; right_dirn = -1;
-
-    MOTOR.setSpeedDir1(40, DIRF);
-    MOTOR.setSpeedDir2(40, DIRF);
-    while (left_encoder_count < 64 || left_encoder_count > 64) {
-      delayMicroseconds(1);
-    }
-
-}
+// void turnLeft() {
+//
+//     directionBot = leftOf(directionBot);
+//     right_encoder_count = left_encoder_count = 0;
+//
+//     left_dirn = -1; right_dirn = 1;
+//
+//     MOTOR.setSpeedDir1(40, DIRR);
+//     MOTOR.setSpeedDir2(40, DIRR);
+//
+//     while (right_encoder_count < 64 || right_encoder_count > 64) {
+//       delayMicroseconds(1);
+//     }
+//
+// }
+//
+// void turnRight() {
+//
+//     directionBot = rightOf(directionBot);
+//     right_encoder_count = left_encoder_count = 0;
+//
+//     left_dirn = 1; right_dirn = -1;
+//
+//     MOTOR.setSpeedDir1(40, DIRF);
+//     MOTOR.setSpeedDir2(40, DIRF);
+//     while (left_encoder_count < 64 || left_encoder_count > 64) {
+//       delayMicroseconds(1);
+//     }
+//
+// }
 
 void RampTime()
 {
