@@ -10,7 +10,7 @@ double theta =  PI/2.0;
 #define D     158.0
 #define TPR 72
 
-#define BLOCK_SIZE 210
+#define BLOCK_SIZE 100
 
 #define DIRECTION_NORTH 0
 #define DIRECTION_EAST  1
@@ -90,8 +90,10 @@ void setup() {
 
 #define CHECKPOINT_INITIAL 0
 #define CHECKPOINT_STATE_WANDER 1
-#define STATE_DONE 2
+#define REACHED_GOAL 2
 int checkpointState = CHECKPOINT_STATE_WANDER;
+
+int preferRightTurn = 0;
 
 double dx, dy;
 
@@ -116,8 +118,8 @@ void loop () {
   right_encoder_count = 0;
 
   // calculate x, y in map
-  int indexX = (int) positionX / BLOCK_SIZE;
-  int indexY = (int) positionY / BLOCK_SIZE;
+  int indexX = (int) (positionX / BLOCK_SIZE);
+  int indexY = (int) (positionY / BLOCK_SIZE);
 
   // calculate next x, y if moving forward in map
   int nextIndexX = indexX + directionVector[directionBot][0];
@@ -134,9 +136,9 @@ void loop () {
     Serial.print("facing: ");
     switch (directionBot) {
       case DIRECTION_NORTH: Serial.println("DIRECTION_NORTH"); break;
-      case DIRECTION_EAST:  Serial.println("DIRECTION_EAST"); break;
+      case DIRECTION_EAST:  Serial.println("DIRECTION_EAST");  break;
       case DIRECTION_SOUTH: Serial.println("DIRECTION_SOUTH"); break;
-      case DIRECTION_WEST:  Serial.println("DIRECTION_WEST"); break;
+      case DIRECTION_WEST:  Serial.println("DIRECTION_WEST");  break;
     }
 
     displayMap(indexX, indexY, nextIndexX, nextIndexY);
@@ -164,37 +166,33 @@ void loop () {
   switch (checkpointState) {
     case CHECKPOINT_STATE_WANDER:
         if (indexX == wanderGoalX && indexY == wanderGoalY) {
-          checkpointState = STATE_DONE;
+          Serial.println("REACHED_GOAL");
+          stop();
+          delay(3000);
+          turnLeft();
 
-          stop(); // ACTION <----------
+          wanderGoalX = 1;
+          wanderGoalY = 1;
+          preferRightTurn = 1;
+
+          checkpointState = CHECKPOINT_STATE_WANDER;
         } else {
           if (bump || world[nextIndexX][nextIndexY]) {
             world[nextIndexX][nextIndexY] = 1;
 
-            bck();
-            delay(500);
+            stop();
 
-            turnLeft();
-
-            delay(1000);
+            if (!world[indexX + directionVector(rightOf(directionBot)][indexY + rightOf(directionBot)])) {
+              turnRight();
+            } else if (!world[indexX + directionVector(leftOf(directionBot)][indexY + leftOf(directionBot)])) {
+              turnLeft();
+            } else {
+              turnRight();
+              turnRight();
+            }
+            stop();
 
             fwd();
-
-            // // see if right is better
-            // switch (selectDirection(wanderGoalX, wanderGoalY, indexX, indexY, directionBot)) {
-            //   case -1:
-            //     turnLeft();
-            //     turnLeft();
-            //   break;
-            //   case 0:
-            //     turnRight();
-            //   break;
-            //   case 1:
-            //     turnLeft();
-            //   break;
-            // }
-            //
-            // fwd();
 
           } else if (world[nextIndexX][nextIndexY] == 0) {
             fwd(); // ALL CLEAR CONTINUE FORWARD
@@ -203,15 +201,6 @@ void loop () {
           }
         }
         break;
-    case STATE_DONE:
-      stop();
-      delay(3000);
-      turnLeft();
-      turnLeft();
-      wanderGoalX = 1;
-      wanderGoalY = 1;
-      checkpointState = CHECKPOINT_STATE_WANDER;
-    break;
   }
 }
 
