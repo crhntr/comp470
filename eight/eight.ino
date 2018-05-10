@@ -58,6 +58,7 @@ volatile int left_dirn = 1;
 volatile int right_dirn = 1;
 volatile long left_encoder_count = 0;
 volatile long right_encoder_count = 0;
+int upRamp = 0;
 
 int ping (int pingPin);
 void turnLeft();
@@ -355,6 +356,13 @@ void turnRight() {
 void RampTime()
 {
   int val = analogRead(PHOTO_PIN);
+
+  while(val > 700 && !upRamp)
+  {
+      MOTOR.setSpeedDir1(15, DIRR);
+      MOTOR.setSpeedDir2(15, DIRR);
+    
+  }
 
   if (val > 60)
   {
