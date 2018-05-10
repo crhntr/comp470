@@ -17,7 +17,7 @@ double theta =  PI/2.0;
 #define DIRECTION_SOUTH 2
 #define DIRECTION_WEST  3
 
-enum {LEFT, RIGHT, STRAIGHT} photo_state;
+enum {LEFT, RIGHT} photo_state;
 
 const int ULTRASONIC_PIN = SCL;
 const int BUMP_PIN = 11;
@@ -345,7 +345,7 @@ void RampTime()
 {
   int val = analogRead(PHOTO_PIN);
 
-  if (val > 100)
+  if (val > 60)
   {
     if (photo_state == LEFT)
     {
@@ -358,13 +358,6 @@ void RampTime()
     if (photo_state == RIGHT)
     {
       MOTOR.setSpeedDir1(12, DIRF);
-      MOTOR.setSpeedDir2(18, DIRR);
-      photo_state = STRAIGHT;
-      delay(500);
-    }
-    else
-    {
-      MOTOR.setSpeedDir1(18, DIRF);
       MOTOR.setSpeedDir2(18, DIRR);
       photo_state = LEFT;
       delay(500);
