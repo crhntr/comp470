@@ -177,23 +177,32 @@ void loop () {
           checkpointState = CHECKPOINT_STATE_WANDER;
         } else {
           if (bump || world[nextIndexX][nextIndexY]) {
+            stop();
+            Serial.println("I HIT A THING... SORRY!");
             world[nextIndexX][nextIndexY] = 1;
 
-            stop();
 
-            if (!world[indexX + directionVector(rightOf(directionBot)][indexY + rightOf(directionBot)])) {
+            int rIndx = indexX + directionVector[rightOf(directionBot)][0];
+            int rIndy = indexY + directionVector[rightOf(directionBot)][1];
+            int lIndx = indexX + directionVector[leftOf(directionBot)][0];
+            int lIndy = indexY + directionVector[leftOf(directionBot)][1];
+
+            if (!world[rIndx][rIndy]) {
+              Serial.println("1");
               turnRight();
-            } else if (!world[indexX + directionVector(leftOf(directionBot)][indexY + leftOf(directionBot)])) {
+            } else if (!world[lIndx][lIndy]) {
+              Serial.println("11");
               turnLeft();
             } else {
+              Serial.println("111");
               turnRight();
               turnRight();
             }
-            stop();
 
             fwd();
 
           } else if (world[nextIndexX][nextIndexY] == 0) {
+            Serial.println("1234124612");
             fwd(); // ALL CLEAR CONTINUE FORWARD
           } else {
             world[indexY][indexX] = 0;
@@ -284,13 +293,12 @@ int leftOf(int dir)  {  return (dir + 3) % 4; }
 void stop () {
   left_dirn = right_dirn = 1;
   right_encoder_count = left_encoder_count = 0;
-  MOTOR.setSpeedDir1(0, DIRR);
-  MOTOR.setSpeedDir2(0, DIRR);
+  Serial.println("DON'T STOP BELIEVING");
+  MOTOR.setStop1();
+  MOTOR.setStop2();
 }
 
 void fwd () {
-  stop();
-
   left_dirn = 1;
   right_dirn = 1;
   MOTOR.setSpeedDir1(10, DIRF);
@@ -307,7 +315,6 @@ void bck () {
 }
 
 void turnLeft() {
-    stop();
 
     directionBot = leftOf(directionBot);
     right_encoder_count = left_encoder_count = 0;
@@ -317,15 +324,13 @@ void turnLeft() {
     MOTOR.setSpeedDir1(40, DIRR);
     MOTOR.setSpeedDir2(40, DIRR);
 
-    while (right_encoder_count < 64) {
+    while (right_encoder_count < 64 || right_encoder_count > 64) {
       delayMicroseconds(1);
     }
 
-    stop();
 }
 
 void turnRight() {
-    stop();
 
     directionBot = rightOf(directionBot);
     right_encoder_count = left_encoder_count = 0;
@@ -334,11 +339,10 @@ void turnRight() {
 
     MOTOR.setSpeedDir1(40, DIRF);
     MOTOR.setSpeedDir2(40, DIRF);
-    while (left_encoder_count < 64) {
+    while (left_encoder_count < 64 || left_encoder_count > 64) {
       delayMicroseconds(1);
     }
 
-    stop();
 }
 
 void RampTime()
