@@ -368,7 +368,7 @@ void RampTime()
   {
     val = analogRead(A0);
     Serial.println(val);
-    if(val < 900)
+    if(val < 80)
         upRamp = 1; 
     else
       MOTOR.setSpeedDir1(15, DIRR);
