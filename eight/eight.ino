@@ -28,9 +28,10 @@ int lenMicroSecondsOfPeriod = 20 * 1000; // 20 milliseconds (ms)
 int lenMicroSecondsOfPulse = 1.0 * 1000; // 1.0 ms is 0 degrees
 
 int directionVector[][2] = {
-  { 0, 1}, {0,-1},
-  { 0,-1}, {1, 0}
+  { 0, 1}, {-1,0}, { 0,-1}, { 1, 0}
 };
+
+int state = 0;
 
 double probablyBlockedThreashold = 0.8;
 double probablyClearThreashold = 0.2;
@@ -86,6 +87,9 @@ void setup() {
 
   Serial.begin(9600);
   looperCount = 1000;
+
+  MOTOR.setSpeedDir1(10, DIRF);
+  MOTOR.setSpeedDir2(10, DIRR);
 }
 
 #define CHECKPOINT_INITIAL 0
@@ -180,51 +184,64 @@ void loop () {
 
           checkpointState = CHECKPOINT_STATE_WANDER;
         } else {
-          if (bump || world[nextIndexX][nextIndexY]) {
+          if (bump || world[nextIndexX][nextIndexY] == 1) {
             stop();
 
             Serial.println("I HIT A THING... SORRY!");
             delay(2000);
 
-            int rIndx = indexX + directionVector[rightOf(directionBot)][0];
-            int rIndy = indexY + directionVector[rightOf(directionBot)][1];
-            int lIndx = indexX + directionVector[leftOf(directionBot)][0];
-            int lIndy = indexY + directionVector[leftOf(directionBot)][1];
-
-            Serial.print(rIndx);
-            Serial.print(" ");
-            Serial.print(rIndy);
-            Serial.print(" ");
-            Serial.print(lIndx);
-            Serial.print(" ");
-            Serial.print(lIndy);
-            Serial.println();
-
-            if (world[rIndx][rIndy]) {
-              Serial.println("1");
-              MOTOR.setSpeedDir1(30, DIRF);
-              MOTOR.setSpeedDir2(30, DIRF);
-              right_encoder_count = left_encoder_count = 0;
-              delay(555);
-            } else if (world[lIndx][lIndy]) {
-              Serial.println("11");
-              MOTOR.setSpeedDir1(30, DIRR);
-              MOTOR.setSpeedDir2(30, DIRR);
-              right_encoder_count = left_encoder_count = 0;
-              delay(555);
-            } else {
-              Serial.println("111");
-              MOTOR.setSpeedDir1(30, DIRF);
-              MOTOR.setSpeedDir2(30, DIRF);
-              right_encoder_count = left_encoder_count = 0;
-              delay(555*2);
+            switch (directionBot) {
+              case DIRECTION_NORTH:
+                if (!world[indexX][indexY+1]) {
+                  directionBot = DIRECTION_EAST;
+                  MOTOR.setSpeedDir1(30, DIRR);
+                  MOTOR.setSpeedDir2(30, DIRR);
+                } else {
+                  directionBot = DIRECTION_WEST;
+                  MOTOR.setSpeedDir1(30, DIRF);
+                  MOTOR.setSpeedDir2(30, DIRF);}
+              break;
+              case DIRECTION_EAST:
+                if (!world[indexX-1][indexY]) {
+                  directionBot = DIRECTION_NORTH;
+                  MOTOR.setSpeedDir1(30, DIRF);
+                  MOTOR.setSpeedDir2(30, DIRF);
+                } else {
+                  directionBot = DIRECTION_SOUTH;
+                  MOTOR.setSpeedDir1(30, DIRR);
+                  MOTOR.setSpeedDir2(30, DIRR);
+                }
+              break;
+              case DIRECTION_SOUTH:
+                if (!world[indexX][indexY-1]) {
+                  directionBot = DIRECTION_EAST;
+                  MOTOR.setSpeedDir1(30, DIRF);
+                  MOTOR.setSpeedDir2(30, DIRF);
+                } else {
+                  directionBot = DIRECTION_WEST;
+                  MOTOR.setSpeedDir1(30, DIRR);
+                  MOTOR.setSpeedDir2(30, DIRR);
+                }
+              break;
+              case DIRECTION_WEST:
+                if (!world[indexX+1][indexY]) {
+                  directionBot = DIRECTION_NORTH;
+                  MOTOR.setSpeedDir1(30, DIRF);
+                  MOTOR.setSpeedDir2(30, DIRF);
+                } else {
+                  directionBot = DIRECTION_SOUTH;
+                  MOTOR.setSpeedDir1(30, DIRR);
+                  MOTOR.setSpeedDir2(30, DIRR);
+                }
+              break;
             }
-            world[nextIndexX][nextIndexY] = 1;
-          }
-          MOTOR.setSpeedDir1(10, DIRF);
-          MOTOR.setSpeedDir2(10, DIRR);
+            right_encoder_count = left_encoder_count = 0;
+            delay(555);
+            displayMap(indexX, indexY, nextIndexX, nextIndexX);
+            MOTOR.setSpeedDir1(10, DIRF);
+            MOTOR.setSpeedDir2(10, DIRR);
         }
-        break;
+        break;}
   }
 }
 
@@ -283,28 +300,6 @@ void turnServo(double pulse) {
      delayMicroseconds(lenMicroSecondsOfPeriod - pulse);
    }
 }
-// selectDirection returns:
-//   -1 if bot should turn around
-//   0 if a right turn would be closer to the goal
-//   1 if a left  turn would be closer to the goal
-int selectDirection(int xgoal, int ygoal, int x, int y, int dir) {
-  int rIndx = x + directionVector[rightOf(dir)][0];
-  int rIndy = y + directionVector[rightOf(dir)][1];
-  int lIndx = x + directionVector[leftOf(dir)][0];
-  int lIndy = y + directionVector[leftOf(dir)][1];
-
-  if (!world[rIndx][rIndy] && !world[lIndx][lIndy]) { return -1; }
-
-  int rDist = ((xgoal-rIndx)*(xgoal-rIndx))+((ygoal-rIndy)*(ygoal-rIndy));
-  int lDist = ((xgoal-lIndx)*(xgoal-lIndx))+((ygoal-lIndy)*(ygoal-lIndy));
-
-  if (lDist > rDist) {
-    return 0;
-  }
-  return 1;
-}
-int rightOf(int dir) {  return (dir + 1) % 4; }
-int leftOf(int dir)  {  return (dir + 3) % 4; }
 
 void stop () {
   Serial.println("DON'T STOP BELIEVING");
@@ -369,13 +364,13 @@ void RampTime()
     val = analogRead(A0);
     Serial.println(val);
     if(val < 900)
-        upRamp = 1; 
+        upRamp = 1;
     else
       MOTOR.setSpeedDir1(15, DIRR);
       MOTOR.setSpeedDir2(15, DIRR);
-  
+
   }
-  
+
   if (val > 60)
   {
     if (state == LEFT)
@@ -391,7 +386,7 @@ void RampTime()
       MOTOR.setSpeedDir1(12, DIRF);
       MOTOR.setSpeedDir2(18, DIRR);
       state = LEFT;
-      delay(500);      
+      delay(500);
     }
   }
 }
